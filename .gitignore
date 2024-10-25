@@ -163,3 +163,7 @@ bk
 tmp
 doc/.$*
 response
+
+# weights
+weights/
+work_dirs/

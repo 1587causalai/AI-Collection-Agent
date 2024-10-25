@@ -1,3 +1,13 @@
+"""
+这个文件是一个模型加载器，负责根据配置文件(WEB_CONFIGS)中的设置来初始化和加载各种AI模型, 包括:
+- LLM 模型
+- RAG 模型
+- TTS 模型
+- ASR 模型
+- 数字人模型
+"""
+
+
 from .web_configs import WEB_CONFIGS
 
 from .rag.rag_worker import load_rag_model

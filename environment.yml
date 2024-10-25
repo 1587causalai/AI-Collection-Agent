@@ -1,4 +1,4 @@
-name: streamer-sales
+name: collection
 channels:
   - pytorch
   - nvidia
@@ -49,7 +49,7 @@ dependencies:
   - libnpp=12.0.2.50=0
   - libnvjitlink=12.1.105=0
   - libnvjpeg=12.1.1.14=0
-  - libpng=1.6.39=h5eee18b_0
+  - libpng=1.6.39=h5eee18b_0tornado
   - libstdcxx-ng=11.2.0=h1234567_1
   - libtasn1=4.19.0=h5eee18b_0
   - libtiff=4.5.1=h6a678d5_0

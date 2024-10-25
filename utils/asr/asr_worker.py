@@ -2,7 +2,7 @@ import datetime
 from funasr import AutoModel
 import streamlit as st
 from utils.web_configs import WEB_CONFIGS
-from modelscope import snapshot_download
+from modelscope.utils.hub import snapshot_download
 from modelscope.utils.constant import Invoke, ThirdParty
 from funasr.download.name_maps_from_hub import name_maps_ms as NAME_MAPS_MS
 

@@ -13,26 +13,27 @@ from pathlib import Path
 import streamlit as st
 import yaml
 
-from utils.web_configs import WEB_CONFIGS
+from utils.web_configs import WEB_CONFIGS #
 
 # 初始化 Streamlit 页面配置
 st.set_page_config(
-    page_title="Streamer-Sales 销冠",
-    page_icon="🛒",
+    page_title="AI-Collection-Agent - 智能电话催收机器人",
+    page_icon="☎️",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        "Get Help": "https://github.com/PeterH0323/Streamer-Sales/tree/main",
-        "Report a bug": "https://github.com/PeterH0323/Streamer-Sales/issues",
-        "About": "# Streamer-Sales LLM 销冠--卖货主播大模型",
+        "Get Help": "https://github.com/PeterH0323/AI-Collection-Agent/tree/main",
+        "Report a bug": "https://github.com/PeterH0323/AI-Collection-Agent/issues",
+        "About": "# AI-Collection-Agent - 智能电话催收机器人",
     },
 )
-from utils.rag.rag_worker import gen_rag_db
+from utils.rag.rag_worker import gen_rag_db # RAG 相关配置
 from utils.tools import resize_image
 
-from utils.model_loader import RAG_RETRIEVER  # isort:skip
+from utils.model_loader import RAG_RETRIEVER  # 读入相关模型
 
 
+# 这段代码定义了一个 Streamlit 对话框函数，用于显示产品说明书
 @st.experimental_dialog("说明书", width="large")
 def instruction_dialog(instruction_path):
     """
@@ -53,7 +54,7 @@ def instruction_dialog(instruction_path):
     if st.button("确定"):
         st.rerun()
 
-
+# 按钮点击事件的回调函数
 def on_btton_click(*args, **kwargs):
     """
     按钮点击事件的回调函数。
@@ -100,73 +101,64 @@ def on_btton_click(*args, **kwargs):
         # 清空历史对话
         st.session_state.messages = []
 
-
-def make_product_container(product_name, product_info, image_height, each_card_offset):
+# 创建催收任务卡片
+def make_client_container(client_id, client_info, image_height, each_card_offset):
     """
-    创建并展示产品信息容器。
-
-    参数:
-    - product_name: 产品名称。
-    - product_info: 包含产品信息的字典，需包括图片路径、特点和说明书路径。
-    - image_height: 图片展示区域的高度。
-    - each_card_offset: 容器内各部分间距。
+    创建催收任务卡片
     """
-
-    # 创建带边框的产品信息容器，设置高度
+    # 创建带边框的客户信息容器，设置高度
     with st.container(border=True, height=image_height + each_card_offset):
 
-        # 页面标题
-        st.header(product_name)
+        # 页面标题使用客户ID
+        st.header(client_id)
 
-        # 划分左右两列，左侧为图片，右侧为商品信息
-        image_col, info_col = st.columns([0.2, 0.8])
+        # 划分左右两列，左侧为图片，右侧为客户信息
+        image_col, info_col = st.columns([0.1, 0.9])
 
         # 图片展示区域
         with image_col:
-            # print(f"Loading {product_info['images']} ...")
-            image = resize_image(product_info["images"], max_height=image_height)
+            # print(f"Loading {client_info['images']} ...")
+            image = resize_image(None, max_height=image_height)
             st.image(image, channels="bgr")
+            pass
 
-        # 产品信息展示区域
+        # 客户信息展示区域
         with info_col:
-
             # 亮点展示
-            st.subheader("亮点", divider="grey")
+            st.subheader("关键信息", divider="grey")
+            highlights_str = "、".join(client_info["highlights"])
+            st.text(highlights_str)
 
-            heighlights_str = "、".join(product_info["heighlights"])
-            st.text(heighlights_str)
-
-            # 说明书按钮
-            st.subheader("说明书", divider="grey")
+            # 客户详细信息按钮
+            st.subheader("详细信息", divider="grey")
             st.button(
                 "查看",
-                key=f"check_instruction_{product_name}",
+                key=f"check_instruction_{client_id}",
                 on_click=on_btton_click,
                 kwargs={
                     "type": "check_instruction",
-                    "product_name": product_name,
-                    "instruction_path": product_info["instruction"],
+                    "product_name": client_id,  # 这里仍使用原有的参数名，但传入client_id
+                    "instruction_path": client_info["instruction"],
                 },
             )
-            # st.button("更新", key=f"update_manual_{product_name}")
 
-            # 讲解按钮
-            st.subheader("主播", divider="grey")
+            # 开始催收按钮
+            st.subheader("个性化催收", divider="grey")
             st.button(
-                "开始讲解",
-                key=f"process_sales_{product_name}",
+                "开始催收",  # 修改按钮文字
+                key=f"process_sales_{client_id}",
                 on_click=on_btton_click,
                 kwargs={
                     "type": "process_sales",
-                    "product_name": product_name,
-                    "heighlights": heighlights_str,
-                    "image_path": product_info["images"],
-                    "departure_place": product_info["departure_place"],
-                    "delivery_company_name": product_info["delivery_company_name"],
+                    "product_name": client_id,  # 这里仍使用原有的参数名，但传入client_id
+                    "heighlights": highlights_str,
+                    "image_path": client_info["images"],
+                    "departure_place": client_info["departure_place"],
+                    "delivery_company_name": client_info["delivery_company_name"],
                 },
             )
 
-
+# 删除指定目录下超过一定时间的文件
 def delete_old_files(directory, limit_time_s=60 * 60 * 5):
     """
     删除指定目录下超过一定时间的文件。
@@ -199,7 +191,7 @@ def delete_old_files(directory, limit_time_s=60 * 60 * 5):
             except Exception as e:
                 print(f"Error deleting {file_path}: {e}")
 
-
+# 从配置文件中加载销售相关信息，并存储到session状态中
 def get_sales_info():
     """
     从配置文件中加载销售相关信息，并存储到session状态中。
@@ -231,32 +223,43 @@ def get_sales_info():
     st.session_state.first_input_template = first_input
     st.session_state.product_info_struct_template = product_info_struct
 
-
+# 初始化客户信息列表
 def init_product_info():
+    """
+    初始化客户信息列表
+    """
     # 读取 yaml 文件
     with open(WEB_CONFIGS.PRODUCT_INFO_YAML_PATH, "r", encoding="utf-8") as f:
-        product_info_dict = yaml.safe_load(f)
+        client_info_dict = yaml.safe_load(f)
 
     # 根据 ID 排序，避免乱序
-    product_info_dict = dict(sorted(product_info_dict.items(), key=lambda item: item[1]["id"]))
+    client_info_dict = dict(sorted(client_info_dict.items(), key=lambda item: item[1]["id"]))
 
-    product_name_list = list(product_info_dict.keys())
+    client_list = list(client_info_dict.keys())[:2]
 
-    # 生成商品信息
-    for row_id in range(0, len(product_name_list), WEB_CONFIGS.EACH_ROW_COL):
+    # 生成客户信息卡片
+    for row_id in range(0, len(client_list), WEB_CONFIGS.EACH_ROW_COL):
         for col_id, col_handler in enumerate(st.columns(WEB_CONFIGS.EACH_ROW_COL)):
             with col_handler:
-                if row_id + col_id >= len(product_name_list):
+                if row_id + col_id >= len(client_list):
                     continue
 
-                product_name = product_name_list[row_id + col_id]
-                make_product_container(
-                    product_name, product_info_dict[product_name], WEB_CONFIGS.PRODUCT_IMAGE_HEIGHT, WEB_CONFIGS.EACH_CARD_OFFSET
+                client_name = client_list[row_id + col_id]
+                client_info = client_info_dict[client_name]
+                
+                # 使用客户ID作为标题
+                client_id = f"客户ID: {client_info['id']}"
+                
+                make_client_container(
+                    client_id, 
+                    client_info, 
+                    WEB_CONFIGS.PRODUCT_IMAGE_HEIGHT, 
+                    WEB_CONFIGS.EACH_CARD_OFFSET
                 )
 
-    return len(product_name_list)
+    return len(client_list)
 
-
+# TTS 初始化
 def init_tts():
     # TTS 初始化
     if "gen_tts_checkbox" not in st.session_state:
@@ -266,7 +269,7 @@ def init_tts():
         Path(WEB_CONFIGS.TTS_WAV_GEN_PATH).mkdir(parents=True, exist_ok=True)
         delete_old_files(WEB_CONFIGS.TTS_WAV_GEN_PATH)
 
-
+# 数字人 初始化
 def init_digital_human():
     # 数字人 初始化
     if "digital_human_video_path" not in st.session_state:
@@ -279,7 +282,7 @@ def init_digital_human():
         Path(WEB_CONFIGS.DIGITAL_HUMAN_GEN_PATH).mkdir(parents=True, exist_ok=True)
         # delete_old_files(st.session_state.digital_human_root)
 
-
+# ASR 初始化
 def init_asr():
     # 清理 ASR 旧文件
     if WEB_CONFIGS.ENABLE_ASR and Path(WEB_CONFIGS.ASR_WAV_SAVE_PATH).exists():
@@ -331,38 +334,40 @@ def main():
         get_sales_info()
 
     # 添加页面导航页
-    # st.sidebar.page_link("app.py", label="商品页", disabled=True)
-    # st.sidebar.page_link("./pages/selling_page.py", label="主播卖货")
+    st.sidebar.page_link("app.py", label="催收任务", disabled=True)
+    st.sidebar.page_link("./pages/selling_page.py", label="智能催收")
 
-    # 主页标题
-    st.title("Streamer-Sales 销冠 —— 卖货主播大模型⭐🛒🏆")
-    st.header("商品页")
+    # 主页标题: 
+    st.title("AI-Collection-Agent - 智能电话催收机器人") 
+    st.header("催收机器人后台", divider="grey")
 
     # 说明
     st.info(
-        "这是主播后台，这里需要主播讲解的商品目录，选择一个商品，点击【开始讲解】即可跳转到主播讲解页面。如果需要加入更多商品，点击下方的添加按钮即可",
+        "这里需要展示催收机器人后台，包括催收任务列表、催收记录、催收成功率等指标。",
         icon="ℹ️",
     )
 
-    # 初始化商品列表
-    product_num = init_product_info()
+    # 初始化客户列表
+    client_num = init_product_info()
 
-    # 侧边栏显示产品数量，入驻品牌方
+    # 侧边栏显示客户数量，入驻品牌方
     with st.sidebar:
         # 标题
-        st.header("销冠 —— 卖货主播大模型", divider="grey")
-        st.markdown("[销冠 —— 卖货主播大模型 Github repo](https://github.com/PeterH0323/Streamer-Sales)")
+        st.header("AI-Collection-Agent - 智能电话催收机器人", divider="grey")
         st.subheader("功能点：", divider="grey")
         st.markdown(
-            "1. 📜 **主播文案一键生成**\n2. 🚀 KV cache + Turbomind **推理加速**\n3. 📚 RAG **检索增强生成**\n4. 🔊 TTS **文字转语音**\n5. 🦸 **数字人生成**\n6. 🌐 **Agent 网络查询**\n7. 🎙️ **ASR 语音转文字**"
+            "1. 📜 **个性化催收话术生成**\n"
+            "2. 📚 **RAG 检索增强生成**\n"
+            "3. 🎙️ **ASR 语音识别**\n"
+            "4. 🔊 **TTS 文字转语音输出**\n"
+            "5. 🌐 **Agent 查询欠款信息**"
         )
 
-        st.subheader(f"主播后台信息", divider="grey")
-        st.markdown(f"共有商品：{product_num} 件")
-        st.markdown(f"共有品牌方：{product_num} 个")
+        st.subheader(f"催收后台信息", divider="grey")
+        st.markdown(f"电话催收：{client_num} 人次")
 
         # TODO 单品成交量
-        # st.markdown(f"共有品牌方：{len(product_name_list)} 个")
+        # st.markdown(f"共有品牌方：{len(client_name_list)} 个")
 
         if WEB_CONFIGS.ENABLE_TTS:
             # 是否生成 TTS
@@ -384,126 +389,87 @@ def main():
                 st.button("结合天气查询到货时间", type="primary")
             st.session_state.enable_agent_checkbox = st.toggle("使用 Agent 能力", value=st.session_state.enable_agent_checkbox)
 
-    # 添加新商品上传表单
-    with st.form(key="add_product_form"):
-        product_name_input = st.text_input(label="添加商品名称")
-        heightlight_input = st.text_input(label="添加商品特性，以'、'隔开")
-        departure_place_input = st.text_input(label="发货地")
-        delivery_company_input = st.text_input(label="快递公司名称")
-        product_image = st.file_uploader(label="上传商品图片", type=["png", "jpg", "jpeg", "bmp"])
-        product_instruction = st.file_uploader(label="上传商品说明书", type=["md"])
+    # 添加催收任务
+    with st.form(key="add_collection_task_form"):
+        debtor_id = st.text_input(label="欠款人ID")
+        debtor_name = st.text_input(label="欠款人姓名")
+        debt_amount = st.number_input(label="欠款金额", min_value=0.0, step=100.0)
+        due_date = st.date_input(label="到期日期")
+        contact_number = st.text_input(label="联系电话")
+        address = st.text_area(label="地址")
+        notes = st.text_area(label="备注信息")
+        
         submit_button = st.form_submit_button(label="提交", disabled=WEB_CONFIGS.DISABLE_UPLOAD)
 
         if WEB_CONFIGS.DISABLE_UPLOAD:
             st.info(
-                "Github 上面的代码已支持上传新商品逻辑。\n但因开放性的 Web APP 没有新增商品审核机制，暂不在此开放上传商品。\n您可以 clone 本项目到您的机器启动即可使能上传按钮",
+                "Github 上面的代码已支持添加新催收任务的逻辑。\n但因开放性的 Web APP 没有新增任务审核机制，暂不在此开放添加功能。\n您可以 clone 本项目到您的机器启动即可使能上传按钮",
                 icon="ℹ️",
             )
 
         if submit_button:
-            update_product_info(
-                product_name_input,
-                heightlight_input,
-                product_image,
-                product_instruction,
-                departure_place_input,
-                delivery_company_input,
+            add_collection_task(
+                debtor_id,
+                debtor_name,
+                debt_amount,
+                due_date,
+                contact_number,
+                address,
+                notes
             )
 
 
-def update_product_info(
-    product_name_input, heightlight_input, product_image, product_instruction, departure_place, delivery_company
+def add_collection_task(
+    debtor_id, debtor_name, debt_amount, due_date, contact_number, address, notes
 ):
     """
-    更新产品信息的函数。
+    添加催收任务的函数。
 
     参数:
-    - product_name_input: 商品名称输入，字符串类型。
-    - heightlight_input: 商品特性输入，字符串类型。
-    - product_image: 商品图片，图像类型。
-    - product_instruction: 商品说明书，文本类型。
-    - departure_place: 发货地。
-    - delivery_company: 快递公司。
+    - debtor_id: 欠款人ID。
+    - debtor_name: 欠款人姓名。
+    - debt_amount: 欠款金额。
+    - due_date: 到期日期。
+    - contact_number: 联系电话。
+    - address: 地址。
+    - notes: 备注信息。
 
     返回值:
     无。该函数直接操作UI状态，不返回任何值。
     """
 
-    # TODO 可以不输入图片和特性，大模型自动生成一版让用户自行选择
-
     # 检查入参
-    if product_name_input == "" or heightlight_input == "":
-        st.error("商品名称和特性不能为空")
+    if debtor_id == "" or debtor_name == "":
+        st.error("欠款人ID和姓名不能为空")
         return
 
-    if product_image is None or product_instruction is None:
-        st.error("图片和说明书不能为空")
-        return
-
-    if departure_place == "" or delivery_company == "":
-        st.error("发货地和快递公司名称不能为空")
+    if debt_amount == 0 or due_date is None or contact_number == "":
+        st.error("欠款金额、到期日期和联系电话不能为空")
         return
 
     # 显示上传状态，并执行上传操作
-    with st.status("正在上传商品...", expanded=True) as status:
+    with st.status("正在添加催收任务...", expanded=True) as status:
 
-        save_tag = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-        image_save_path = Path(WEB_CONFIGS.PRODUCT_IMAGES_DIR).joinpath(f"{save_tag}{Path(product_image.name).suffix}")
-        instruct_save_path = Path(WEB_CONFIGS.PRODUCT_INSTRUCTION_DIR).joinpath(
-            f"{save_tag}{Path(product_instruction.name).suffix}"
-        )
+        # 更新催收任务列表
+        if "collection_tasks" not in st.session_state:
+            st.session_state.collection_tasks = []
 
-        st.write("图片保存中...")
-        with open(image_save_path, "wb") as file:
-            file.write(product_image.getvalue())
+        new_task = {
+            "debtor_id": debtor_id,
+            "debtor_name": debtor_name,
+            "debt_amount": debt_amount,
+            "due_date": due_date,
+            "contact_number": contact_number,
+            "address": address,
+            "notes": notes
+        }
 
-        st.write("说明书保存中...")
-        with open(instruct_save_path, "wb") as file:
-            file.write(product_instruction.getvalue())
-
-        st.write("更新商品明细表...")
-        with open(WEB_CONFIGS.PRODUCT_INFO_YAML_PATH, "r", encoding="utf-8") as f:
-            product_info_dict = yaml.safe_load(f)
-
-        # 排序防止乱序
-        product_info_dict = dict(sorted(product_info_dict.items(), key=lambda item: item[1]["id"]))
-        max_id_key = max(product_info_dict, key=lambda x: product_info_dict[x]["id"])
-
-        product_info_dict.update(
-            {
-                product_name_input: {
-                    "heighlights": heightlight_input.split("、"),
-                    "images": str(image_save_path),
-                    "instruction": str(instruct_save_path),
-                    "id": product_info_dict[max_id_key]["id"] + 1,
-                    "departure_place": departure_place,
-                    "delivery_company_name": delivery_company,
-                }
-            }
-        )
-
-        # 备份
-        if Path(WEB_CONFIGS.PRODUCT_INFO_YAML_BACKUP_PATH).exists():
-            Path(WEB_CONFIGS.PRODUCT_INFO_YAML_BACKUP_PATH).unlink()
-        shutil.copy(WEB_CONFIGS.PRODUCT_INFO_YAML_PATH, WEB_CONFIGS.PRODUCT_INFO_YAML_BACKUP_PATH)
-
-        # 覆盖保存
-        with open(WEB_CONFIGS.PRODUCT_INFO_YAML_PATH, "w", encoding="utf-8") as f:
-            yaml.dump(product_info_dict, f, allow_unicode=True)
-
-        st.write("生成数据库...")
-        if WEB_CONFIGS.ENABLE_RAG:
-            # 重新生成 RAG 向量数据库
-            gen_rag_db(force_gen=True)
-
-            # 重新加载 retriever
-            RAG_RETRIEVER.pop("default")
-            RAG_RETRIEVER.get(fs_id="default", config_path=WEB_CONFIGS.RAG_CONFIG_PATH, work_dir=WEB_CONFIGS.RAG_VECTOR_DB_DIR)
+        st.session_state.collection_tasks.append(new_task)
 
         # 更新状态
-        status.update(label="添加商品成功!", state="complete", expanded=False)
+        status.update(label="添加催收任务成功!", state="complete", expanded=False)
 
-        st.toast("添加商品成功!", icon="🎉")
+        st.toast("添加催收任务成功!", icon="🎉")
 
         with st.spinner("准备刷新页面..."):
             time.sleep(3)
@@ -517,3 +483,6 @@ if __name__ == "__main__":
 
     # print("Starting...")
     main()
+
+
+

@@ -1,3 +1,11 @@
+"""
+RAG 模型相关操作, 包括:
+- 基础配置
+- 生成 RAG prompt
+- 初始化 RAG 模型
+- 生成 RAG 数据库
+"""
+
 import shutil
 from pathlib import Path
 

@@ -1,3 +1,16 @@
+"""这是一个配置文件，使用 Python 的 @dataclass 装饰器创建了一个配置类。
+主要的配置包括：
+- LLM 模型配置
+- 组件配置
+- 页面配置
+- 商品配置
+- 配置文件路径
+- RAG 配置
+- TTS 配置
+- 数字人 配置
+- Agent 配置
+- ASR 配置
+"""
 from dataclasses import dataclass
 import os
 
@@ -15,18 +28,22 @@ class WebConfigs:
         LLM_MODEL_NAME: str = "HinGwenWoong/streamer-sales-lelemiao-7b-4bit"
     else:
         LLM_MODEL_NAME: str = "HinGwenWoong/streamer-sales-lelemiao-7b"
+    
+    # /share/new_models/Shanghai_AI_Laboratory/internlm2_5-1_8b-chat
+    LLM_MODEL_NAME: str = "/share/new_models/Shanghai_AI_Laboratory/internlm2_5-1_8b-chat"
 
     SALES_NAME: str = "乐乐喵"  # 启动的角色名
 
-    LLM_MODEL_DIR: str = r"./weights/llm_weights/"
+    # LLM_MODEL_DIR: str = r"./weights/llm_weights/"
+    LLM_MODEL_DIR: str = "/share/new_models/Shanghai_AI_Laboratory/"
 
     # ==================================================================
     #                               组件配置
     # ==================================================================
-    ENABLE_RAG: bool = True  # True 启用 RAG 检索增强，False 不启用
+    ENABLE_RAG: bool = False  # True 启用 RAG 检索增强，False 不启用
     ENABLE_TTS: bool = True  # True 启动 tts，False 不启用
-    ENABLE_DIGITAL_HUMAN: bool = True  # True 启动 数字人，False 不启用
-    ENABLE_AGENT: bool = os.environ.get("ENABLE_AGENT", "true") == "true"  # True 启动 Agent，False 不启用
+    ENABLE_DIGITAL_HUMAN: bool = False  # True 启动 数字人，False 不启用
+    ENABLE_AGENT: bool = False # os.environ.get("ENABLE_AGENT", "true") == "true"  # True 启动 Agent，False 不启用
     ENABLE_ASR: bool = os.environ.get("ENABLE_ASR", "true") == "true"  # True 启动 语音转文字，False 不启用
 
     DISABLE_UPLOAD: bool = os.getenv("DISABLE_UPLOAD") == "true"
@@ -72,7 +89,8 @@ class WebConfigs:
     #                               TTS 配置
     # ==================================================================
     TTS_WAV_GEN_PATH: str = r"./work_dirs/tts_wavs"
-    TTS_MODEL_DIR: str = r"./weights/gpt_sovits_weights/"
+    # TTS_MODEL_DIR: str = r"./weights/gpt_sovits_weights/" 
+    TTS_MODEL_DIR: str = r"/root/models/speech_sambert-hifigan_tts_zhiyan_emo_zh-cn_16k"  # 修改为sambert模型路径
 
     # ==================================================================
     #                             数字人 配置
